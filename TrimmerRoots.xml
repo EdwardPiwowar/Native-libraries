@@ -1,0 +1,10 @@
+<linker>
+  <!-- FFI wrapper — assembly wynikowe (EPBot.dll) -->
+  <assembly fullname="EPBot">
+    <type fullname="EPBotFFI" preserve="all" />
+  </assembly>
+  <!-- Logika bota — EPBotNET.dll -->
+  <assembly fullname="EPBotNET">
+    <type fullname="EPBotNET.EPBot" preserve="all" />
+  </assembly>
+</linker>
