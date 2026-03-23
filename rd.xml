@@ -1,9 +1,7 @@
 <Directives xmlns="http://schemas.microsoft.com/netfx/2013/01/metadata">
   <Application>
     <!--
-      EPBot.EPBot — główna klasa logiki bota.
-      Wymagana przez EPBotFFI który używa GCHandle.Alloc(new EPBot())
-      oraz przez NativeAOT type resolver przy aktywacji instancji.
+      EPBot.EPBot — główna klasa logiki bota. Wymagana przez EPBotFFI który używa GCHandle.Alloc(new EPBot()) oraz przez NativeAOT type resolver przy aktywacji instancji.
     -->
     <Assembly Name="EPBot" Dynamic="Required All">
       <Type Name="EPBotNET.EPBot" Dynamic="Required All" Activate="Required All" />
