@@ -182,35 +182,21 @@ jobs:
       - name: Use variable
         run: echo $FOLDER_PATH
 
-- uses: actions/download-artifact@v4
-  with:
-    name: EPBot-linux-x64
-    path: ${{ env.FOLDER_PATH }}/linux/x64
 
-- uses: actions/download-artifact@v4
-  with:
-    name: EPBot-linux-arm64
-    path: ${{ env.FOLDER_PATH }}/linux/arm64
+      - uses: actions/checkout@v4
 
-- uses: actions/download-artifact@v4
-  with:
-    name: EPBot-osx-arm64
-    path: ${{ env.FOLDER_PATH }}/macos/arm64
-
-- uses: actions/download-artifact@v4
-  with:
-    name: EPBot-win-x64
-    path: ${{ env.FOLDER_PATH }}/windows/x64
-
-- uses: actions/download-artifact@v4
-  with:
-    name: EPBot-win-arm64
-    path: ${{ env.FOLDER_PATH }}/windows/arm64
-
-- uses: actions/download-artifact@v4
-  with:
-    name: EPBot-wasm
-    path: ${{ env.FOLDER_PATH }}/wasm
+      - uses: actions/download-artifact@v4
+        with: { name: EPBot-linux-x64,   path: dist/linux/x64   }
+      - uses: actions/download-artifact@v4
+        with: { name: EPBot-linux-arm64,  path: dist/linux/arm64 }
+      - uses: actions/download-artifact@v4
+        with: { name: EPBot-osx-arm64,    path: dist/macos/arm64 }
+      - uses: actions/download-artifact@v4
+        with: { name: EPBot-win-x64,      path: dist/windows/x64   }
+      - uses: actions/download-artifact@v4
+        with: { name: EPBot-win-arm64,    path: dist/windows/arm64 }
+      - uses: actions/download-artifact@v4
+        with: { name: EPBot-wasm,           path: dist/wasm         }
 
       - name: Zip all libraries
         run: |
