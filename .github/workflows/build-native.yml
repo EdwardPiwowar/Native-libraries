@@ -169,6 +169,21 @@ jobs:
       contents: write
 
     steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/download-artifact@v4
+        with: { name: EPBot-linux-x64,   path: Native-libraries/linux/x64   }
+      - uses: actions/download-artifact@v4
+        with: { name: EPBot-linux-arm64,  path: Native-libraries/linux/arm64 }
+      - uses: actions/download-artifact@v4
+        with: { name: EPBot-osx-arm64,    path: Native-libraries/macos/arm64 }
+      - uses: actions/download-artifact@v4
+        with: { name: EPBot-win-x64,      path: Native-libraries/windows/x64   }
+      - uses: actions/download-artifact@v4
+        with: { name: EPBot-win-arm64,    path: Native-libraries/windows/arm64 }
+      - uses: actions/download-artifact@v4
+        with: { name: EPBot-wasm,           path: Native-libraries/wasm         }
+
       - name: Get version
         id: version
         run: |
@@ -176,32 +191,10 @@ jobs:
           BUILD=${VERSION##*.}
           echo "build=$BUILD" >> $GITHUB_OUTPUT
 
-      - name: Set folder path
-        run: echo "FOLDER_PATH=Native-libraries-${{ steps.version.outputs.build }}" >> $GITHUB_ENV
-
-      - name: Use variable
-        run: echo $FOLDER_PATH
-
-
-      - uses: actions/checkout@v4
-
-      - uses: actions/download-artifact@v4
-        with: { name: EPBot-linux-x64,   path: dist/linux/x64   }
-      - uses: actions/download-artifact@v4
-        with: { name: EPBot-linux-arm64,  path: dist/linux/arm64 }
-      - uses: actions/download-artifact@v4
-        with: { name: EPBot-osx-arm64,    path: dist/macos/arm64 }
-      - uses: actions/download-artifact@v4
-        with: { name: EPBot-win-x64,      path: dist/windows/x64   }
-      - uses: actions/download-artifact@v4
-        with: { name: EPBot-win-arm64,    path: dist/windows/arm64 }
-      - uses: actions/download-artifact@v4
-        with: { name: EPBot-wasm,           path: dist/wasm         }
-
       - name: Zip all libraries
         run: |
-          ls -lR $FOLDER_PATH/
-          zip -r EPBot-libraries-${{ steps.version.outputs.build }}.zip $FOLDER_PATH/
+          ls -lR Native-libraries/
+          zip -r EPBot-libraries-${{ steps.version.outputs.build }}.zip Native-libraries/
 
       - name: Set release name
         id: release_name
