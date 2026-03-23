@@ -9,9 +9,9 @@ on:
 
 jobs:
 
-  # ===========================================================================
-  # LINUX — x64 i ARM64
-  # ===========================================================================
+  # =========================
+  # BUILD (ALL PLATFORMS)
+  # =========================
   build-linux:
     runs-on: ${{ matrix.runner }}
     strategy:
@@ -25,69 +25,48 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
           dotnet-quality: preview
 
-      - name: Install native dependencies
-        run: sudo apt-get install -y clang zlib1g-dev
+      - run: sudo apt-get install -y clang zlib1g-dev
 
-      - name: Publish ${{ matrix.rid }}
-        run: |
+      - run: |
           dotnet publish EPBotFFI.csproj -c Release \
             -r ${{ matrix.rid }} \
             -p:PublishAot=true \
             --self-contained true
 
-      - name: List publish output
-        run: find bin/Release -type f | sort
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: EPBot-${{ matrix.rid }}
           path: bin/Release/net10.0/${{ matrix.rid }}/publish/libEPBot.so
-          if-no-files-found: error
 
 
-  # ===========================================================================
-  # macOS — ARM64 (Apple Silicon)
-  # ===========================================================================
   build-macos:
     runs-on: macos-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
           dotnet-quality: preview
 
-      - name: Publish osx-arm64
-        run: |
+      - run: |
           dotnet publish EPBotFFI.csproj -c Release \
             -r osx-arm64 \
             -p:PublishAot=true \
             --self-contained true
 
-      - name: List publish output
-        run: find bin/Release -type f | sort
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: EPBot-osx-arm64
           path: bin/Release/net10.0/osx-arm64/publish/libEPBot.dylib
-          if-no-files-found: error
 
 
-  # ===========================================================================
-  # WINDOWS — x64 i ARM64
-  # ===========================================================================
   build-windows:
     runs-on: windows-latest
     strategy:
@@ -97,13 +76,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
           dotnet-quality: preview
 
-      - name: Publish ${{ matrix.rid }}
+      - shell: pwsh
         run: |
           dotnet publish EPBotFFI.csproj -c Release `
             -r ${{ matrix.rid }} `
@@ -111,78 +89,63 @@ jobs:
             --self-contained true `
             -p:DefineConstants=WINDOWS
 
-      - name: List publish output
-        shell: pwsh
-        run: Get-ChildItem -Recurse bin/Release | Select-Object FullName | Sort-Object FullName
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: EPBot-${{ matrix.rid }}
           path: bin/Release/net10.0/${{ matrix.rid }}/publish/EPBot.dll
-          if-no-files-found: error
 
 
-
-  # ===========================================================================
-  # WASM — WebAssembly (przeglądarka / WASI)
-  # ===========================================================================
   build-wasm:
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 10.0.x
           dotnet-quality: preview
 
-      - name: Install WASI SDK
-        run: |
+      - run: |
           wget -q https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-24/wasi-sdk-24.0-x86_64-linux.tar.gz
           tar -xzf wasi-sdk-24.0-x86_64-linux.tar.gz
           echo "WASI_SDK_PATH=$PWD/wasi-sdk-24.0-x86_64-linux" >> $GITHUB_ENV
 
-      - name: Publish wasi-wasm
-        run: |
-          dotnet publish EPBotWasm.csproj -c Release
+      - run: dotnet publish EPBotWasm.csproj -c Release
 
-      - name: List publish output
-        run: find bin/Release -type f | sort
-
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: EPBot-wasm
           path: bin/Release/net10.0/wasi-wasm/publish/
-          if-no-files-found: error
 
-  # ===========================================================================
+
+  # =========================
   # RELEASE
-  # ===========================================================================
+  # =========================
   release:
     needs: [ build-linux, build-macos, build-windows, build-wasm ]
     runs-on: ubuntu-latest
     permissions:
       contents: write
 
+    strategy:
+      matrix:
+        include:
+          - name: EPBot-linux-x64
+            path: linux/x64
+          - name: EPBot-linux-arm64
+            path: linux/arm64
+          - name: EPBot-osx-arm64
+            path: macos/arm64
+          - name: EPBot-win-x64
+            path: windows/x64
+          - name: EPBot-win-arm64
+            path: windows/arm64
+          - name: EPBot-wasm
+            path: wasm
+
     steps:
       - uses: actions/checkout@v4
-
-      - uses: actions/download-artifact@v4
-        with: { name: EPBot-linux-x64,   path: Native-libraries/linux/x64   }
-      - uses: actions/download-artifact@v4
-        with: { name: EPBot-linux-arm64,  path: Native-libraries/linux/arm64 }
-      - uses: actions/download-artifact@v4
-        with: { name: EPBot-osx-arm64,    path: Native-libraries/macos/arm64 }
-      - uses: actions/download-artifact@v4
-        with: { name: EPBot-win-x64,      path: Native-libraries/windows/x64   }
-      - uses: actions/download-artifact@v4
-        with: { name: EPBot-win-arm64,    path: Native-libraries/windows/arm64 }
-      - uses: actions/download-artifact@v4
-        with: { name: EPBot-wasm,           path: Native-libraries/wasm         }
 
       - name: Get version
         id: version
@@ -191,36 +154,31 @@ jobs:
           BUILD=${VERSION##*.}
           echo "build=$BUILD" >> $GITHUB_OUTPUT
 
-      - name: Zip all libraries
+      - name: Set variables
         run: |
-          ls -lR Native-libraries/
-          zip -r EPBot-libraries-${{ steps.version.outputs.build }}.zip Native-libraries/
+          echo "BUILD=${{ steps.version.outputs.build }}" >> $GITHUB_ENV
+          echo "FOLDER_PATH=Native-libraries-${{ steps.version.outputs.build }}" >> $GITHUB_ENV
 
-      - name: Set release name
-        id: release_name
-        run: echo "name=EPBot-libraries-${{ steps.version.outputs.build }}" >> $GITHUB_OUTPUT
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ matrix.name }}
+          path: ${{ env.FOLDER_PATH }}/${{ matrix.path }}
 
-      - name: Delete previous release if exists
+      - name: Zip libraries
+        if: ${{ matrix.name == 'EPBot-wasm' }} # tylko raz po ostatnim
+        run: |
+          ls -lR $FOLDER_PATH
+          zip -r EPBot-libraries-$BUILD.zip $FOLDER_PATH/
+
+      - name: Create release
+        if: ${{ matrix.name == 'EPBot-wasm' }}
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: gh release delete "${{ steps.release_name.outputs.name }}" --yes 2>/dev/null || true
-
-      - name: Create GitHub Release
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "${{ steps.release_name.outputs.name }}" \
-            EPBot-libraries-${{ steps.version.outputs.build }}.zip \
-            --title "EPBot-libraries-${{ steps.version.outputs.build }}" \
-            --notes "Automatyczny build z commit ${{ github.sha }}
+          gh release delete "EPBot-libraries-$BUILD" --yes 2>/dev/null || true
 
-          ## Zawartość archiwum
-          | Folder | Plik | Architektura |
-          |--------|------|--------------|
-          | \`linux/x64/\` | \`libEPBot.so\` | x64 |
-          | \`linux/arm64/\` | \`libEPBot.so\` | ARM64 |
-          | \`macos/arm64/\` | \`libEPBot.dylib\` | Apple Silicon |
-          | \`windows/x64/\` | \`EPBot.dll\` | x64 |
-          | \`windows/arm64/\` | \`EPBot.dll\` | ARM64 |
-          | \`wasm/\` | \`EPBot.wasm\` | WebAssembly |
-          "
+          gh release create "EPBot-libraries-$BUILD" \
+            EPBot-libraries-$BUILD.zip \
+            --title "EPBot-libraries-$BUILD" \
+            --notes "Automatyczny build z commit ${{ github.sha }}"
