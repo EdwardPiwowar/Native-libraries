@@ -8,7 +8,7 @@ https://sites.google.com/view/bbaenglish
 
 Repository for Build Native-libraries.
 
-The version number for the DLL is automatically taken from the EPBotFFI.csproj project file and requires manual change.
+The version number for the DLL is automatically taken from the EPBotFFI.csproj|Native-libraries.vbproj project file and requires manual change.
 
 
 Archive contents:
