@@ -186,13 +186,10 @@ jobs:
 
       - name: Get version
         id: version
-        shell: pwsh
         run: |
-          $version = [System.Diagnostics.FileVersionInfo]::GetVersionInfo("DLL/EPBotNET.dll").FileVersion
-          $build = $version.Split('.')[-1]
-          Write-Host "Version: $version"
-          Write-Host "Build: $build"
-          "build=$build" >> $env:GITHUB_OUTPUT
+          VERSION=$(grep -oP '(?<=<Version>)[^<]+' EPBotFFI.csproj)
+          BUILD=${VERSION##*.}
+          echo "build=$BUILD" >> $GITHUB_OUTPUT
 
       - name: Zip all libraries
         run: |
@@ -217,8 +214,8 @@ jobs:
             --title "EPBot-libraries-${{ steps.version.outputs.build }}" \
             --notes "Automatyczny build z commit ${{ github.sha }}
 
-          ## Zawartość archiwum
-          | Folder | Plik | Architektura |
+          ## Archive contents:
+          | Folder | File | Architecture |
           |--------|------|--------------|
           | \`linux/x64/\` | \`libEPBot.so\` | x64 |
           | \`linux/arm64/\` | \`libEPBot.so\` | ARM64 |
