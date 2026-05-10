@@ -184,15 +184,15 @@ jobs:
       - uses: actions/download-artifact@v4
         with: { name: EPBot-wasm,           path: Native-libraries/wasm         }
 
-       - name: Get version
-         id: version
-         shell: pwsh
-         run: |
-           $version = [System.Diagnostics.FileVersionInfo]::GetVersionInfo("DLL/EPBotNET.dll").FileVersion
-           $build = $version.Split('.')[-1]
-           Write-Host "Version: $version"
-           Write-Host "Build: $build"
-           "build=$build" >> $env:GITHUB_OUTPUT
+      - name: Get version
+        id: version
+        shell: pwsh
+        run: |
+          $version = [System.Diagnostics.FileVersionInfo]::GetVersionInfo("DLL/EPBotNET.dll").FileVersion
+          $build = $version.Split('.')[-1]
+          Write-Host "Version: $version"
+          Write-Host "Build: $build"
+          "build=$build" >> $env:GITHUB_OUTPUT
 
       - name: Zip all libraries
         run: |
