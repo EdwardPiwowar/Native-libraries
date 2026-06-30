@@ -86,6 +86,39 @@ jobs:
 
 
   # ===========================================================================
+  # iOS — ARM64 (statyczna biblioteka .a, NativeAOT-for-iOS)
+  # ===========================================================================
+  build-ios:
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+          dotnet-quality: preview
+
+      - name: Publish ios-arm64
+        run: |
+          dotnet publish EPBotFFI.csproj -c Release \
+            -r ios-arm64 \
+            -p:PublishAot=true \
+            --self-contained true
+
+      - name: List publish output
+        run: find bin/Release -type f | sort
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: EPBot-ios-arm64
+          path: bin/Release/net10.0/ios-arm64/publish/libEPBot.a
+          if-no-files-found: error
+
+
+  # ===========================================================================
   # WINDOWS — x64 i ARM64
   # ===========================================================================
   build-windows:
@@ -163,7 +196,7 @@ jobs:
   # RELEASE
   # ===========================================================================
   release:
-    needs: [ build-linux, build-macos, build-windows, build-wasm ]
+    needs: [ build-linux, build-macos, build-ios, build-windows, build-wasm ]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -177,6 +210,8 @@ jobs:
         with: { name: EPBot-linux-arm64,  path: Native-libraries/linux/arm64 }
       - uses: actions/download-artifact@v4
         with: { name: EPBot-osx-arm64,    path: Native-libraries/macos/arm64 }
+      - uses: actions/download-artifact@v4
+        with: { name: EPBot-ios-arm64,    path: Native-libraries/ios/arm64   }
       - uses: actions/download-artifact@v4
         with: { name: EPBot-win-x64,      path: Native-libraries/windows/x64   }
       - uses: actions/download-artifact@v4
@@ -220,6 +255,7 @@ jobs:
           | \`linux/x64/\` | \`libEPBot.so\` | x64 |
           | \`linux/arm64/\` | \`libEPBot.so\` | ARM64 |
           | \`macos/arm64/\` | \`libEPBot.dylib\` | Apple Silicon |
+          | \`ios/arm64/\` | \`libEPBot.a\` | iOS (static, link into Xcode app) |
           | \`windows/x64/\` | \`EPBot.dll\` | x64 |
           | \`windows/arm64/\` | \`EPBot.dll\` | ARM64 |
           | \`wasm/\` | \`EPBot.wasm\` | WebAssembly |
