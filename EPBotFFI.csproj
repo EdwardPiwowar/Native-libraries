@@ -16,7 +16,7 @@
     <!-- rd.xml: Runtime Directives dla NativeAOT — umożliwia refleksję w runtime -->
     <RdXmlFile>rd.xml</RdXmlFile>
 
-    <Version>0.0.0.8741</Version>
+    <Version>0.0.0.8744</Version>
     <Authors>Edward Piwowar</Authors>
     <Copyright>Edward Piwowar</Copyright>
     <AssemblyVersion>0.0.0.8744</AssemblyVersion>
